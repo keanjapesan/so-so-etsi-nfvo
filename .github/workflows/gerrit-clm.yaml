@@ -5,10 +5,6 @@
 name: '🔐 Security Scans (CLM)'
 
 on:
-  schedule:
-    # Intentionally scheduled at an odd minute letting GitHub's queue randomize the exact start.
-    - cron: "37 0 * * 6"
-
   push:
     branches: ["main", "master"]
     paths:
@@ -72,12 +68,12 @@ on:
         description: "Specific version of Nexus CLI to setup/run"
         required: false
         type: string
-        default: "2.4.2-01"
+        default: "1.179.0-01"
       application_id:
         description: "Organisation and project name in Nexus IQ"
         required: false
         type: string
-        default: ""
+        default: "onap-so-so-etsi-nfvo"
       scan_targets:
         description: "Location of file(s) or folder(s) to scan"
         required: false
@@ -93,8 +89,8 @@ on:
 env:
   JAVA_DISTRIBUTION: ${{ inputs.java_distribution || 'temurin' }}
   JAVA_VERSION: ${{ inputs.java_version || '11' }}
-  IQ_CLI_VERSION: ${{ inputs.iq_cli_version || '2.4.2-01' }}
-  APPLICATION_ID: ${{ inputs.application_id || format('{0}-{1}', github.repository_owner, github.event.repository.name) }}
+  IQ_CLI_VERSION: ${{ inputs.iq_cli_version || '1.179.0-01' }}
+  APPLICATION_ID: ${{ 'onap-so-so-etsi-nfvo' || format('{0}-{1}', github.repository_owner, github.event.repository.name) }}
   SCAN_TARGETS: ${{ inputs.scan_targets || '.' }}
   DEBUG: ${{ inputs.debug || false }}
 
@@ -187,19 +183,10 @@ jobs:
             exit 1
           fi
 
-      - name: Load secret from 1Password
-        if: steps.check-pom-xml.outputs.exists == 'true'
-        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259 # v4.0.0
-        with:
-          export-env: true
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          NEXUS_V2_PASSWORD: "op://elnqtgip7eqavqvgodjbiiaqd4/${{ steps.extract-project.outputs.project-name }}/password"
-
       - name: 'Output SHA1 sum of password'
         if: steps.check-pom-xml.outputs.exists == 'true'
         env:
-          NEXUS_V2_PASSWORD: ${{ env.NEXUS_V2_PASSWORD }}
+          NEXUS_V2_PASSWORD: ${{ secrets.NEXUS_V2_PASSWORD }}
         run: |
           # Output SHA1 sum of password
           VALUE_SHA1=$(printf '%s' "$NEXUS_V2_PASSWORD" | shasum -a 1 | awk '{print $1}')
@@ -209,7 +196,7 @@ jobs:
         id: create-settings
         if: steps.check-pom-xml.outputs.exists == 'true'
         env:
-          NEXUS_V2_PASSWORD: ${{ env.NEXUS_V2_PASSWORD }}
+          NEXUS_V2_PASSWORD: ${{ secrets.NEXUS_V2_PASSWORD }}
           PROJECT_NAME: ${{ steps.extract-project.outputs.project-name }}
         run: |
           # Generate settings content for maven-build-action
