@@ -21,7 +21,7 @@ package org.onap.so.etsi.nfvo.ns.lcm.rest;
 
 import static org.onap.so.etsi.nfvo.ns.lcm.Constants.NS_LIFE_CYCLE_MANAGEMENT_BASE_URL;
 import static org.slf4j.LoggerFactory.getLogger;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 import org.onap.so.etsi.nfvo.ns.lcm.lifecycle.NsLcmOperationOccurrenceManager;
 import org.onap.so.etsi.nfvo.ns.lcm.model.InlineResponse400;
 import org.onap.so.etsi.nfvo.ns.lcm.model.NsLcmOpOccsNsLcmOpOcc;

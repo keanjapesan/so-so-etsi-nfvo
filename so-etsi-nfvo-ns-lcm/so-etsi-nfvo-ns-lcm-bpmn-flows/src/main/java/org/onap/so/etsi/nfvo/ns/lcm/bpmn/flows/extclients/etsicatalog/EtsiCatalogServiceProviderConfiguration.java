@@ -27,18 +27,16 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.ssl.SSLContextBuilder;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.onap.logging.filter.spring.SpringClientPayloadFilter;
 import org.onap.so.configuration.BasicHttpHeadersProvider;
 import org.onap.so.configuration.HttpClientConnectionConfiguration;
@@ -111,17 +109,13 @@ public class EtsiCatalogServiceProviderConfiguration {
             try {
                 LOGGER.debug("Setting up HttpComponentsClientHttpRequestFactory with SSL Context");
                 LOGGER.debug("Setting client trust-store: {}", trustStore.getURL());
-                LOGGER.debug("Creating SSLConnectionSocketFactory with AllowAllHostsVerifier ... ");
+                LOGGER.debug("Creating SSLConnectionSocketFactory with NoopHostnameVerifier ... ");
                 final SSLContext sslContext = new SSLContextBuilder()
                         .loadTrustMaterial(trustStore.getURL(), trustStorePassword.toCharArray()).build();
                 final SSLConnectionSocketFactory sslConnectionSocketFactory =
-                        new SSLConnectionSocketFactory(sslContext, AllowAllHostsVerifier.INSTANCE);
-                httpClientBuilder.setSSLSocketFactory(sslConnectionSocketFactory);
-                final Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder
-                        .<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.INSTANCE)
-                        .register("https", sslConnectionSocketFactory).build();
+                        new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
 
-                httpClientBuilder.setConnectionManager(getConnectionManager(socketFactoryRegistry));
+                httpClientBuilder.setConnectionManager(getConnectionManager(sslConnectionSocketFactory));
             } catch (final KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException
                     | IOException exception) {
                 LOGGER.error("Error reading truststore, TLS connection will fail.", exception);
@@ -140,37 +134,35 @@ public class EtsiCatalogServiceProviderConfiguration {
     }
 
     private PoolingHttpClientConnectionManager getConnectionManager(
-            final Registry<ConnectionSocketFactory> socketFactoryRegistry) {
-        return new PoolingHttpClientConnectionManager(socketFactoryRegistry, null, null, null,
-                clientConnectionConfiguration.getTimeToLiveInMins(), TimeUnit.MINUTES);
+            final SSLConnectionSocketFactory sslConnectionSocketFactory) {
+        return PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(sslConnectionSocketFactory)
+                .setMaxConnPerRoute(clientConnectionConfiguration.getMaxConnectionsPerRoute())
+                .setMaxConnTotal(clientConnectionConfiguration.getMaxConnections())
+                .setConnectionTimeToLive(
+                        TimeValue.of(clientConnectionConfiguration.getTimeToLiveInMins(), TimeUnit.MINUTES))
+                .build();
     }
 
     private PoolingHttpClientConnectionManager getConnectionManager() {
-        return new PoolingHttpClientConnectionManager(clientConnectionConfiguration.getTimeToLiveInMins(),
-                TimeUnit.MINUTES);
+        return PoolingHttpClientConnectionManagerBuilder.create()
+                .setMaxConnPerRoute(clientConnectionConfiguration.getMaxConnectionsPerRoute())
+                .setMaxConnTotal(clientConnectionConfiguration.getMaxConnections())
+                .setConnectionTimeToLive(
+                        TimeValue.of(clientConnectionConfiguration.getTimeToLiveInMins(), TimeUnit.MINUTES))
+                .build();
     }
 
     private HttpClientBuilder getHttpClientBuilder() {
-        return HttpClientBuilder.create().setMaxConnPerRoute(clientConnectionConfiguration.getMaxConnectionsPerRoute())
-                .setMaxConnTotal(clientConnectionConfiguration.getMaxConnections())
-                .setDefaultRequestConfig(getRequestConfig());
+        return HttpClientBuilder.create().setDefaultRequestConfig(getRequestConfig());
     }
 
     private RequestConfig getRequestConfig() {
-        return RequestConfig.custom().setSocketTimeout(clientConnectionConfiguration.getSocketTimeOutInMiliSeconds())
-                .setConnectTimeout(clientConnectionConfiguration.getConnectionTimeOutInMilliSeconds()).build();
-    }
-
-    private static final class AllowAllHostsVerifier implements HostnameVerifier {
-
-        private static final AllowAllHostsVerifier INSTANCE = new AllowAllHostsVerifier();
-
-        @Override
-        public boolean verify(final String hostname, final SSLSession session) {
-            LOGGER.debug("Skipping hostname verification ...");
-            return true;
-        }
-
+        return RequestConfig.custom()
+                .setResponseTimeout(
+                        Timeout.ofMilliseconds(clientConnectionConfiguration.getSocketTimeOutInMiliSeconds()))
+                .setConnectTimeout(
+                        Timeout.ofMilliseconds(clientConnectionConfiguration.getConnectionTimeOutInMilliSeconds()))
+                .build();
     }
 
     public void setGsonMessageConverter(final RestTemplate restTemplate) {

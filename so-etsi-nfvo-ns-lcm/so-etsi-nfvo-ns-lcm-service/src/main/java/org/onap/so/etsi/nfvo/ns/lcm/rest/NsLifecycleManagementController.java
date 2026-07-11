@@ -25,7 +25,7 @@ import static org.onap.so.etsi.nfvo.ns.lcm.Constants.HTTP_SERVICETYPE_HEADER_PAR
 import static org.onap.so.etsi.nfvo.ns.lcm.Constants.NS_LIFE_CYCLE_MANAGEMENT_BASE_URL;
 import static org.slf4j.LoggerFactory.getLogger;
 import java.net.URI;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.onap.so.etsi.nfvo.ns.lcm.lifecycle.NsLifeCycleManager;
 import org.onap.so.etsi.nfvo.ns.lcm.model.Body;

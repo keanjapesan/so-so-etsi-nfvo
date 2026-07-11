@@ -64,7 +64,7 @@ public class Sol003AdapterServiceProviderImpl implements Sol003AdapterServicePro
             final ResponseEntity<CreateVnfResponse> response =
                     httpServiceProvider.postHttpRequest(request, url, CreateVnfResponse.class);
 
-            final HttpStatus httpStatus = response.getStatusCode();
+            final HttpStatus httpStatus = HttpStatus.resolve(response.getStatusCode().value());
             if (!(httpStatus.equals(HttpStatus.ACCEPTED)) && !(httpStatus.equals(HttpStatus.OK))) {
                 LOGGER.error("Unable to invoke HTTP POST using URL: {}, Response Code: {}", url, httpStatus.value());
                 return Optional.empty();
@@ -99,7 +99,7 @@ public class Sol003AdapterServiceProviderImpl implements Sol003AdapterServicePro
             final ResponseEntity<QueryJobResponse> response =
                     httpServiceProvider.getHttpResponse(url, QueryJobResponse.class);
 
-            final HttpStatus httpStatus = response.getStatusCode();
+            final HttpStatus httpStatus = HttpStatus.resolve(response.getStatusCode().value());
 
             if (!(httpStatus.equals(HttpStatus.ACCEPTED)) && !(httpStatus.equals(HttpStatus.OK))) {
                 LOGGER.error("Unable to invoke HTTP GET using URL: {}, Response Code: ", url, httpStatus.value());
@@ -124,7 +124,7 @@ public class Sol003AdapterServiceProviderImpl implements Sol003AdapterServicePro
 
             final ResponseEntity<DeleteVnfResponse> response =
                     httpServiceProvider.deleteHttpRequest(url, DeleteVnfResponse.class);
-            final HttpStatus httpStatus = response.getStatusCode();
+            final HttpStatus httpStatus = HttpStatus.resolve(response.getStatusCode().value());
             if (!(httpStatus.equals(HttpStatus.ACCEPTED)) && !(httpStatus.equals(HttpStatus.OK))) {
                 LOGGER.error("Unable to invoke HTTP DELETE using URL: {}, Response Code: {}", url, httpStatus.value());
                 return Optional.empty();

@@ -43,6 +43,7 @@ public class CamundaCustomConfiguration extends AbstractCamundaConfiguration {
         logger.info("Setting DeploymentTenantId to {} and DeploymentName to {}", TENANT_ID, NS_WORKFLOW_ENGINE);
         processEngineConfiguration.setDeploymentTenantId(TENANT_ID);
         processEngineConfiguration.setDeploymentName(NS_WORKFLOW_ENGINE);
+        processEngineConfiguration.setEnforceHistoryTimeToLive(false);
         super.preInit(processEngineConfiguration);
     }
 

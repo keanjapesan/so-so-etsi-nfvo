@@ -20,7 +20,7 @@
 package org.onap.so.etsi.nfvo.ns.lcm.database.config;
 
 import static org.slf4j.LoggerFactory.getLogger;
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import org.onap.so.etsi.nfvo.ns.lcm.database.beans.NfvoJob;
 import org.slf4j.Logger;

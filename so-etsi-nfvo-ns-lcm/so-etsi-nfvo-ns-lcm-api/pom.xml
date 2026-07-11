@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.onap.so.so-etsi-nfvo.ns.lcm</groupId>
         <artifactId>so-etsi-nfvo-ns-lcm</artifactId>
-        <version>1.12.0-SNAPSHOT</version>
+        <version>1.13.0-SNAPSHOT</version>
     </parent>
     <artifactId>so-etsi-nfvo-ns-lcm-api</artifactId>
     <name>SO ETSI NFVO NS LCM Manager Api</name>
@@ -106,6 +106,12 @@
         <dependency>
             <groupId>javax.xml.bind</groupId>
             <artifactId>jaxb-api</artifactId>
+            <version>${jaxb-api}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
         </dependency>
     </dependencies>
 

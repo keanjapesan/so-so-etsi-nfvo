@@ -19,8 +19,8 @@
  */
 package org.onap.so.etsi.nfvo.ns.lcm.database;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import org.junit.Test;
 import org.onap.so.etsi.nfvo.ns.lcm.database.beans.NfvoJob;
 import org.onap.so.etsi.nfvo.ns.lcm.database.beans.NfvoJobStatus;
